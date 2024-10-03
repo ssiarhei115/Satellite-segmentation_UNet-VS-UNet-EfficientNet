@@ -1,88 +1,75 @@
-# UNet VS UNet-w-EfficientNet-backbone for satellite segmentation
+# UNet vs UNet-w-EfficientNet-backbone for satellite segmentation
 
 ## Main goal
-Compare two types of NN (Neural Network) detectors for face mask detection using the following criterias:
-* mAP
-* training time for the same number of epochs (50)
-* weights file size
+Compare two types of NN (Neural Network) models for satellite  segmentation using the following criterias:
+* IoU metric & f1-score
+* training time for the same number of epochs (10)
 
 ## Models
 Models to bring into comparison:
-1) fasterrcnn_resnet50_fpn_v2
-2) Yolo V8s
+1) UNet
+2) UNet with pretrained EfficientNet backbone
 
-### fasterrcnn_resnet50_fpn_v2
-Improved Faster R-CNN model with a ResNet-50-FPN backbone. The FPN (Region Proposal Network) module in Faster RCNN is responsible for giving an output of rectangular object proposals. ResNet (Residual Neural Network) is a deep neural network designed to solve the gradient decay problem. It uses the concept of “skip connections” or “residual connections” that allow information to flow directly from one layer to another, bypassing intermediate layers. This allows for training deeper networks with better performance.
+### UNet
+Network that relies on the strong use of data augmentation to use the available annotated samples more efficiently. The architecture consists of a contracting path to capture context and a symmetric expanding path that enables precise localization. This network can be trained end-to-end from very few images.  
+<img src='imgs/unet.png'>
+Original paper: https://arxiv.org/pdf/1505.04597
 
-### Yolo V8s
-YOLO (You Only Look Once) is one of the most well-known models for real-time object detection in images. It is based on convolutional neural networks and allows achieving high processing speed without sacrificing accuracy. YOLO divides the image into a grid of cells and each cell predicts the boundaries and classes of objects contained within it. YOLOv8s - COCO Pretrained Models.
-
-Both models are pretrained on <strong>COCO dataset</strong> which is highly popular for its diversity and large number of images across multiple categories.
-* COCO contains 330K images, with 200K images having annotations for object detection, segmentation, and captioning tasks.
-* The dataset comprises 80 object categories, including common objects like cars, bicycles, and animals, as well as more specific categories such as umbrellas, handbags, and sports equipment.
-* Annotations include object bounding boxes, segmentation masks, and captions for each image.
-
-Both model were used with pretrained weights, then finetuned for particular number of classes detection.
-
+### UNet with EfficientNet backbone pretrained on Imagenet dataset
+EfficientNets family resulted Convolutional Neural Networks scaling investigation (Mingxing Tan 1 Quoc V. Le). According to the authors there are many ways to scale a ConvNet for different resource constraints: 
+* ResNet (He et al., 2016) can be scaled down (e.g., ResNet-18) or up (e.g., ResNet-200) by adjusting network depth (#layers), 
+* while WideResNet (Zagoruyko & Komodakis, 2016) and MobileNets (Howard et al., 2017) can be scaled by network width (#channels). 
+* It is also well-recognized that bigger input image size will help accuracy with the overhead of more FLOPS.
+Original paper: https://arxiv.org/pdf/1905.11946.
+In this work the lightest efficientnet-b0 (4M params) was used as pretrained backbone to extract features of different spatial resolution.  
 
 ## Data description
-The original dataset (https://www.kaggle.com/datasets/andrewmvd/face-mask-detection/data) contains 853 images belonging to the 3 classes, as well as their bounding boxes in the PASCAL VOC format. The classes are:
 
-* With mask;
-* Without mask;
-* Mask worn incorrectly.
+The original dataset (https://github.com/Yurushia1998/SatelliteDataset) - A satellite dataset for object detection and segmentation using both synthesis and real satellite images.
+* This dataset include 3116 images, mask with size 1280x720 and bounding boxes of both synthesis and real satellite images. Each satellite is segmented into at most 3 parts, including body, solar panel and antena by respectively 3 color: green,red,blue.
+* Image with index 0-1002 has fine mask while images from index 1003-3116 has coarse masks.
+* The datasets is divided into 2 parts: train data including 403 fine mask from index 0-402 and 2114 coarse mask from index 1003-3116. The val dataset includes 600 images with fine mask indexed from 403 to 1002.
+* File all_bbox.txt include bounding boxes of all satellites inside datasets based on segmentation masks in form of a dictionary with index of images as key. Each bounding boxes has format [max_x,max_y,min_x,min_y].
 
-This dataset was concatenated with https://www.kaggle.com/datasets/siarheis/face-mask-detection-add-incorr in order to enrich data with the least class 3 instances ('Mask worn incorrectly'). This extra dataset was created for this particular project. It contains 105 images annotated with Roboflow.
+## Metrics
 
-
-## Metric
-
-Main metric used - mAP.
-This metric was computed from scratch and compared with values provided by YOLO as reference.
+Dice score (F1 score) and Jaccard score (Intersection over Union score)
+* The Dice score is calculated as two times the overlap between the predicted segmentation mask and the Ground Truth mask divided by the total pixels in both the masks
+* IoU score is calculated by dividing the overlap between the Ground Truth segmentation mask and the predicted mask by the total pixels in the Ground Truth and the predicted masks.
 
 ### Important terms
 
-***Intersection Over Union (IOU)***
+***Imagenet dataset***
 
-Intersection Over Union (IOU) is a measure based on Jaccard Index that evaluates the overlap between two bounding boxes. It requires a ground truth bounding box and a predicted bounding box . By applying the IOU we can tell if a detection is valid (True Positive) or not (False Positive).
+The ImageNet dataset contains 14,197,122 annotated images according to the WordNet hierarchy. Since 2010 the dataset is used in the ImageNet Large Scale Visual Recognition Challenge (ILSVRC), a benchmark in image classification and object detection
+* Total number of non-empty WordNet synsets: 21841
+* Total number of images: 14197122
+* Number of images with bounding box annotations: 1,034,908
+* Number of synsets with SIFT features: 1000
+* Number of images with SIFT features: 1.2 million
 
-<img src='imgs/1.png'>
+Original paper: https://arxiv.org/pdf/1409.0575
 
-Some basic concepts used by the metrics:
-* True Positive (TP): A correct detection. Detection with IOU ≥ threshold
-* False Positive (FP): A wrong detection. Detection with IOU < threshold
-* False Negative (FN): A ground truth not detected
-* True Negative (TN): Does not apply. It would represent a corrected misdetection. 
+***SIFT***
 
-***Precision x Recall curve***
-
-The Precision x Recall curve is a good way to evaluate the performance of an object detector as the confidence is changed by plotting a curve for each object class. An object detector of a particular class is considered good if its precision stays high as recall increases, which means that if you vary the confidence threshold, the precision and recall will still be high. Another way to identify a good object detector is to look for a detector that can identify only relevant objects (0 False Positives = high precision), finding all ground truth objects (0 False Negatives = high recall).
-
-A poor object detector needs to increase the number of detected objects (increasing False Positives = lower precision) in order to retrieve all ground truth objects (high recall). That's why the Precision x Recall curve usually starts with high precision values, decreasing as recall increases. You can see an example of the Prevision x Recall curve in the next topic (Average Precision). This kind of curve is used by the PASCAL VOC 2012 challenge and is available in our implementation.
-
-***Average Precision***
-
-Another way to compare the performance of object detectors is to calculate the area under the curve (AUC) of the Precision x Recall curve. As AP curves are often zigzag curves going up and down, comparing different curves (different detectors) in the same plot usually is not an easy task - because the curves tend to cross each other much frequently. That's why Average Precision (AP), a numerical metric, can also help us compare different detectors. In practice AP is the precision averaged across all recall values between 0 and 1.
-
-The Precision x Recall curve is plotted by calculating the precision and recall values of the accumulated TP or FP detections. For this, first we need to order the detections by their confidences, then we calculate the precision and recall for each accumulated detection. Note that for recall computation, the denominator term ("Acc TP + Acc FN" or "All ground truths") is constant.
-
-Calculating the interpolation performed in all points
-By interpolating all points, the Average Precision (AP) can be interpreted as an approximated AUC of the Precision x Recall curve. The intention is to reduce the impact of the wiggles in the curve.
-
-<img src='imgs/2.png'>
+SIFT (Scale Invariant Feature Transform) Detector is used in the detection of interest points on an input image. Unlike the Harris Detector, which is dependent on properties of the image such as viewpoint, depth, and scale, SIFT can perform feature detection independent of these properties of the image. This is achieved by the transformation of the image data into scale-invariant coordinates. The SIFT Detector has been said to be a close approximation of the system used in the primate visual system.
 
 ## Summary
 
-<img src='imgs/3.png'>
+<img src='imgs/summary.png'>
 
-YOLOv8 showed better results over all criteria used:
+Two models based on UNet were compared in satellites segmentation task.
+As expected, UNet with EfficientNet-b0 backbone (4M, params; pretrained on Imagenet) significantly outperformed base UNet acccording to all criterias designated, after only 10 epochs training:
+    
+    * It works 1.5 times faster than the base model, on the same hardware configuration; 
+    * it showed significantly better values ​​for all metrics;
 
-    * it spends much less time for training (6x advantage)
-    * weights file of YOLO 22.5 MB VS 173 MB for FasterRCNN
-    * YOLOv8 provides better mAP50 but this metric values for both models are similar and comparable
+How to improve results:
 
-Upon the whole, AP per class & mAP50 computed from scratch are comparable to those values provided by YOLO8s   
+1) Scaling EfficientNet backbone to HW resource constraints
+2) Increasing training epochs number
+3) Another NN architecture + encoder combination should be tested too
 
-
+  
 ## Libraries & tools used
 * see the requirements
