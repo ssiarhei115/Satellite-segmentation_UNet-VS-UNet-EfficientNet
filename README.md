@@ -20,8 +20,10 @@ EfficientNets family resulted Convolutional Neural Networks scaling investigatio
 * ResNet (He et al., 2016) can be scaled down (e.g., ResNet-18) or up (e.g., ResNet-200) by adjusting network depth (#layers), 
 * while WideResNet (Zagoruyko & Komodakis, 2016) and MobileNets (Howard et al., 2017) can be scaled by network width (#channels). 
 * It is also well-recognized that bigger input image size will help accuracy with the overhead of more FLOPS.
+
 Original paper: https://arxiv.org/pdf/1905.11946.
-In this work the lightest efficientnet-b0 (4M params) was used as pretrained backbone to extract features of different spatial resolution.  
+
+In this work the lightest efficientnet-b0 (4M params) was used as pretrained backbone to extract features of different spatial resolution for UNet.  
 
 ## Data description
 
