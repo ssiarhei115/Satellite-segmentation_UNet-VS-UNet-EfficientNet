@@ -13,6 +13,7 @@ Models to bring into comparison:
 ### UNet
 Network that relies on the strong use of data augmentation to use the available annotated samples more efficiently. The architecture consists of a contracting path to capture context and a symmetric expanding path that enables precise localization. This network can be trained end-to-end from very few images.  
 <img src='imgs/unet.png' width=700>
+
 Original paper: https://arxiv.org/pdf/1505.04597
 
 ### UNet with EfficientNet backbone pretrained on Imagenet dataset
@@ -27,7 +28,8 @@ In this work the lightest efficientnet-b0 (4M params) was used as pretrained bac
 
 ## Data description
 
-The original dataset (https://github.com/Yurushia1998/SatelliteDataset) - A satellite dataset for object detection and segmentation using both synthesis and real satellite images.
+The original dataset: (https://github.com/Yurushia1998/SatelliteDataset) - 
+A satellite dataset for object detection and segmentation using both synthesis and real satellite images.
 * This dataset include 3116 images, mask with size 1280x720 and bounding boxes of both synthesis and real satellite images. Each satellite is segmented into at most 3 parts, including body, solar panel and antena by respectively 3 color: green,red,blue.
 * Image with index 0-1002 has fine mask while images from index 1003-3116 has coarse masks.
 * The datasets is divided into 2 parts: train data including 403 fine mask from index 0-402 and 2114 coarse mask from index 1003-3116. The val dataset includes 600 images with fine mask indexed from 403 to 1002.
