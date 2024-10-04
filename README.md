@@ -66,6 +66,8 @@ As expected, UNet with EfficientNet-b0 backbone (4M, params; pretrained on Image
     * It works 1.5 times faster than the base model, on the same hardware configuration; 
     * it showed significantly better values ​​for all metrics;
 
+<img src='imgs/models_vis.png'>
+
 How to improve results:
 
 1) Scaling EfficientNet backbone to HW resource constraints
