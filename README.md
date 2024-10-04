@@ -12,7 +12,7 @@ Models to bring into comparison:
 
 ### UNet
 Network that relies on the strong use of data augmentation to use the available annotated samples more efficiently. The architecture consists of a contracting path to capture context and a symmetric expanding path that enables precise localization. This network can be trained end-to-end from very few images.  
-<img src='imgs/unet.png'>
+<img src='imgs/unet.png' width=700>
 Original paper: https://arxiv.org/pdf/1505.04597
 
 ### UNet with EfficientNet backbone pretrained on Imagenet dataset
